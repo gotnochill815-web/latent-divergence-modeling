@@ -1,262 +1,338 @@
-#  Latent Divergence Modeling in Paired Non-Stationary Time Series
+# Latent Divergence Modeling
 
-A research-oriented machine learning framework for inferring, tracking, and forecasting latent divergence dynamics between correlated agents under sparse and noisy observations.
+> **Variational State Space Models for Learning Divergence Dynamics in Paired Time Series**
 
-Built using probabilistic state-space modeling and neural sequence learning.
-
----
-
-## Overview
-
-Many real-world systems evolve together while remaining only partially observable.
-
-Examples include:
-
-- Financial assets
-- Human behavioral dynamics
-- Biological systems
-- Sensor networks
-- Multi-agent systems
-
-This project proposes a hybrid latent-state framework capable of modeling hidden divergence and convergence patterns in paired non-stationary time series.
+A research-oriented deep learning framework for modeling paired time series using **Variational State Space Models (VSSMs)**. The project learns latent representations of two correlated sequences, models temporal dynamics, and quantifies divergence between latent trajectories.
 
 ---
 
-## Research Question
+# Architecture
 
-> How can we robustly infer, track, and predict latent divergence between correlated agents under sparse and noisy observations?
+<p align="center">
+  <img src="docs/figures/architecture.png" width="850">
+</p>
 
----
+The model consists of:
 
-## Key Contributions
-
-### Hybrid Latent State Model
-
-- Neural sequence encoder
-- Latent State Space Model (SSM)
-- Variational latent inference
-
----
-
-### Divergence-Aware Objective
-
-Custom loss function
-
-\[
-L =
-L_{KL}
-+
-\lambda L_{div}
-+
-\beta L_{smooth}
-\]
-
-where
-
-- KL preserves latent structure
-- Divergence penalizes persistent separation
-- Smoothness encourages temporal consistency
+- Variational Encoder
+- Latent State Space Model
+- Shared Decoder
+- Divergence-aware Latent Space
+- Multi-objective Loss Function
 
 ---
 
-### Regime-Aware Modeling
+# Training Pipeline
 
-Supports multiple latent operating regimes.
+<p align="center">
+  <img src="docs/figures/pipeline.png" width="850">
+</p>
 
-Useful for
+Pipeline Overview
 
-- structural breaks
-- behavioral shifts
-- non-stationary dynamics
+```
+Synthetic Time Series
+        │
+        ▼
+Variational Encoder
+        │
+        ▼
+Latent Representation
+        │
+        ▼
+Latent State Space Model
+        │
+        ▼
+Decoder
+        │
+        ▼
+Loss Functions
+        │
+        ▼
+Training
+        │
+        ▼
+Evaluation
+        │
+        ▼
+Benchmark
+```
 
 ---
 
-## Repository Structure
+# Features
+
+- Variational Encoder
+- Latent State Space Model
+- Shared Decoder
+- KL Regularization
+- Latent Divergence Loss
+- Smoothness Regularization
+- Synthetic Paired Time Series Generator
+- Multiple Baseline Models
+- Automatic Benchmarking
+- Visualization Pipeline
+- Streamlit-ready Project Structure
+
+---
+
+# Repository Structure
 
 ```
 latent-divergence-modeling/
 
-│
 ├── analysis/
-│   ├── visualize_latents.py
 │   ├── divergence_metrics.py
-│   ├── evaluate.py
-│   └── ablations.py
+│   ├── visualize_latents.py
+│   ├── training_curve.py
+│   ├── reconstruction_plot.py
+│   ├── benchmark_summary.py
+│   └── latent_space_plot.py
 │
 ├── baselines/
-│   ├── lstm.py
+│   ├── kalman.py
 │   ├── hmm.py
-│   └── kalman.py
+│   └── lstm.py
+│
+├── checkpoints/
 │
 ├── data/
-│   ├── synthetic_generator.py
-│   └── dataset.py
+│   ├── dataset.py
+│   └── synthetic_generator.py
+│
+├── docs/
+│   └── figures/
+│
+├── evaluation/
+│   ├── benchmark.py
+│   ├── compare.py
+│   ├── interface.py
+│   └── metrics.py
 │
 ├── experiments/
 │   ├── train.py
-│   ├── evaluate.py
-│   └── ablations.py
+│   └── evaluate.py
 │
 ├── losses/
 │   └── divergence_loss.py
 │
 ├── models/
 │   ├── encoder.py
+│   ├── decoder.py
 │   ├── latent_ssm.py
 │   └── regime_model.py
 │
 ├── results/
 │
-├── app.py
-├── run_train.py
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Model Pipeline
+# Installation
 
-```
-Observed Time Series
-        │
-        ▼
-Neural Encoder
-        │
-        ▼
-Latent Representation
-        │
-        ▼
-State Space Model
-        │
-        ▼
-Latent Trajectories
-        │
-        ▼
-Divergence Estimation
-        │
-        ▼
-Visualization & Analysis
-```
-
----
-
-## Baselines
-
-Implemented comparison models
-
-- LSTM
-- Hidden Markov Model (HMM)
-- Kalman Filter
-
----
-
-## Experiments
-
-Current experiments include
-
-- Synthetic paired time series
-- Latent trajectory inference
-- Divergence visualization
-- Regime-aware analysis
-- Baseline comparison
-- Ablation studies
-
----
-
-## Results
-
-The framework visualizes
-
-- Latent trajectories
-- Divergence dynamics
-- Regime transitions
-- Mean divergence statistics
-
-Example outputs are available in the `results/` directory.
-
----
-
-## Installation
+Clone the repository
 
 ```bash
 git clone https://github.com/gotnochill815-web/latent-divergence-modeling.git
 
 cd latent-divergence-modeling
+```
 
+Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## Training
+# Training
 
 ```bash
-python run_train.py
+python -m experiments.train
+```
+
+This will
+
+- Train the Variational State Space Model
+- Save checkpoints
+- Save training history
+- Generate training metrics
+
+---
+
+# Evaluation
+
+```bash
+python -m experiments.evaluate
+```
+
+Produces
+
+- Mean Divergence
+- Maximum Divergence
+- Cosine Divergence
+- MSE
+- AUC
+
+---
+
+# Benchmark
+
+Run
+
+```bash
+python -m evaluation.benchmark
+```
+
+Outputs
+
+```
+results/
+
+benchmark_results.csv
+
+rmse.png
+
+mae.png
+
+runtime.png
 ```
 
 ---
 
-## Visualization
+# Training Dynamics
 
-```bash
-python -m analysis.visualize_latents
-```
+<p align="center">
+<img src="docs/figures/training_curve.png" width="850">
+</p>
 
----
-
-## Streamlit Demo
-
-Run locally
-
-```bash
-streamlit run app.py
-```
+The training loss decreases steadily while reconstruction error remains low and latent smoothness improves throughout optimization.
 
 ---
 
-## Future Work
+# Reconstruction
 
-- Transformer-based temporal encoder
-- Variational State Space Models
-- Bayesian uncertainty estimation
-- Real-world financial datasets
-- Multivariate latent dynamics
+<p align="center">
+<img src="docs/figures/reconstruction.png" width="850">
+</p>
+
+Comparison between the reconstructed sequences and the original paired observations.
+
+---
+
+# Latent Space
+
+<p align="center">
+<img src="docs/figures/latent_space.png" width="700">
+</p>
+
+Visualization of the learned latent trajectories for both paired time series.
+
+---
+
+# Benchmark Comparison
+
+<p align="center">
+<img src="docs/figures/benchmark_summary.png" width="900">
+</p>
+
+Current benchmark includes
+
+- Variational State Space Model (Ours)
+- Kalman Filter
+- Hidden Markov Model
+- LSTM
+
+Evaluation Metrics
+
+- RMSE
+- MAE
+- Runtime
+- Mean Divergence
+- Cosine Divergence
+- Smoothness
+
+---
+
+# Loss Function
+
+The training objective combines four complementary losses:
+
+\[
+\mathcal{L}
+=
+\mathcal{L}_{reconstruction}
++
+\beta
+\mathcal{L}_{KL}
++
+\lambda
+\mathcal{L}_{divergence}
++
+\gamma
+\mathcal{L}_{smoothness}
+\]
+
+where
+
+- Reconstruction Loss preserves observations
+- KL Divergence regularizes the latent posterior
+- Divergence Loss separates paired latent trajectories
+- Smoothness Loss encourages temporal consistency
+
+---
+
+# Results
+
+Current benchmark demonstrates:
+
+- Stable latent trajectory learning
+- Smooth temporal representations
+- Competitive reconstruction accuracy
+- Quantifiable latent divergence
+- Comparison against classical and neural baselines
+
+---
+
+# Future Work
+
+- Real-world multimodal datasets
 - Online inference
-- Diffusion-based temporal forecasting
+- Transformer-based latent dynamics
+- Diffusion priors
+- Regime-switching dynamics
+- Uncertainty-aware forecasting
+- Bayesian latent transitions
 
 ---
 
-## Applications
-
-- Quantitative Finance
-- Time-Series Forecasting
-- Multi-Agent Systems
-- Behavioral Modeling
-- Sensor Fusion
-- Computational Neuroscience
-- Healthcare Analytics
-
----
-
-## Tech Stack
+# Technologies
 
 - Python
 - PyTorch
 - NumPy
 - Matplotlib
+- Pandas
+- FilterPy
+- hmmlearn
 - Streamlit
 
 ---
 
-## Citation
-
-If you find this project useful, please consider citing the repository.
-
----
-
-## Author
+# Author
 
 **Prakhya Khandelwal**
 
-AI/ML Research | Probabilistic Modeling | Time-Series Learning | Generative AI
+AI Research • Machine Learning • Deep Learning • Probabilistic Modeling
+
+GitHub:
+https://github.com/gotnochill815-web
+
+---
+
+## License
+
+MIT License
