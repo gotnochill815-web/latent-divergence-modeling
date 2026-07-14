@@ -1,72 +1,184 @@
+import os
 import torch
-import torch.nn.functional as F
-from torch.optim import Adam
+import torch.optim as optim
 
-from models.latent_ssm import LatentSSM
 from models.encoder import Encoder
-from losses.divergence_loss import divergence_loss, smoothness_loss
+from models.decoder import Decoder
+from models.latent_ssm import LatentSSM
+
+from losses.divergence_loss import (
+    reconstruction_loss,
+    kl_divergence,
+    divergence_loss,
+    smoothness_loss,
+)
 
 
 def train(
     data,
-    latent_dim=2,
-    obs_dim=2,
-    epochs=200,
+    epochs=150,
     lr=1e-3,
-    lambda_div=1.0,
-    beta_smooth=0.1
+    beta=0.1,
+    lambda_div=5.0,
+    gamma=0.1,
 ):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    encoder = Encoder(obs_dim, latent_dim).to(device)
-    ssm = LatentSSM(latent_dim).to(device)
-
-    optimizer = Adam(
-        list(encoder.parameters()) + list(ssm.parameters()),
-        lr=lr
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
     )
 
-    y1 = data["obs_1"].to(device)
-    y2 = data["obs_2"].to(device)
+    y1 = data["obs_1"].float().to(device)
+    y2 = data["obs_2"].float().to(device)
 
-    T = y1.shape[0]
+    obs_dim = y1.shape[1]
+    latent_dim = obs_dim
+
+    encoder = Encoder(
+        obs_dim=obs_dim,
+        latent_dim=latent_dim,
+    ).to(device)
+
+    decoder = Decoder(
+        obs_dim=obs_dim,
+        latent_dim=latent_dim,
+    ).to(device)
+
+    ssm = LatentSSM(
+        latent_dim=latent_dim,
+    ).to(device)
+
+    optimizer = optim.Adam(
+        list(encoder.parameters())
+        + list(decoder.parameters())
+        + list(ssm.parameters()),
+        lr=lr,
+    )
+
+    print("\nStarting Training...\n")
 
     for epoch in range(epochs):
+
+        encoder.train()
+        decoder.train()
+        ssm.train()
+
         optimizer.zero_grad()
 
-        z_prev = torch.zeros(1, 2 * latent_dim).to(device)
-        kl_total = 0.0
-        z_seq = []
+        latent_list = []
+        posterior_list = []
 
-        for t in range(T):
-            z_post, q_dist = encoder(
+        recon1 = []
+        recon2 = []
+
+        # ------------------------------------
+        # Encode entire sequence
+        # ------------------------------------
+
+        for t in range(len(y1)):
+
+            z, posterior = encoder(
                 y1[t:t+1],
-                y2[t:t+1]
+                y2[t:t+1],
             )
 
-            z_prior, p_dist = ssm(z_prev)
+            latent_list.append(z)
+            posterior_list.append(posterior)
 
-            kl = torch.distributions.kl_divergence(q_dist, p_dist).mean()
-            kl_total += kl
+            y1_hat, y2_hat = decoder(z)
 
-            z_seq.append(z_post)
-            z_prev = z_post.detach()
+            recon1.append(y1_hat)
+            recon2.append(y2_hat)
 
-        z_seq = torch.cat(z_seq, dim=0)
+        z_sequence = torch.cat(latent_list, dim=0)
 
-        L_div = divergence_loss(z_seq, latent_dim)
-        L_smooth = smoothness_loss(z_seq)
+        recon1 = torch.cat(recon1, dim=0)
+        recon2 = torch.cat(recon2, dim=0)
 
-        loss = kl_total + lambda_div * L_div + beta_smooth * L_smooth
-        loss.backward()
+        z1 = z_sequence[:, :latent_dim]
+        z2 = z_sequence[:, latent_dim:]
+
+        # ------------------------------------
+        # Losses
+        # ------------------------------------
+
+        recon = reconstruction_loss(
+            y1,
+            y2,
+            recon1,
+            recon2,
+        )
+
+        kl = 0.0
+
+        for posterior in posterior_list:
+            kl += kl_divergence(posterior)
+
+        kl = kl / len(posterior_list)
+
+        div = divergence_loss(
+            z1,
+            z2,
+        )
+
+        smooth = smoothness_loss(
+            z_sequence,
+        )
+
+        total = (
+            recon
+            + beta * kl
+            + lambda_div * div
+            + gamma * smooth
+        )
+
+        total.backward()
+
         optimizer.step()
 
-        if epoch % 20 == 0:
+        if epoch % 10 == 0:
+
             print(
-                f"Epoch {epoch:03d} | "
-                f"KL: {kl_total.item():.3f} | "
-                f"Div: {L_div.item():.3f} | "
-                f"Smooth: {L_smooth.item():.3f}"
+                f"Epoch {epoch:03d}"
+                f" | Total {total.item():.4f}"
+                f" | Recon {recon.item():.4f}"
+                f" | KL {kl.item():.4f}"
+                f" | Div {div.item():.4f}"
+                f" | Smooth {smooth.item():.4f}"
             )
 
-    return encoder, ssm
+    print("\nTraining Finished.")
+
+    os.makedirs("checkpoints", exist_ok=True)
+
+    torch.save(
+        encoder.state_dict(),
+        "checkpoints/encoder.pt",
+    )
+
+    torch.save(
+        decoder.state_dict(),
+        "checkpoints/decoder.pt",
+    )
+
+    torch.save(
+        ssm.state_dict(),
+        "checkpoints/ssm.pt",
+    )
+
+    print("\nSaved checkpoints:")
+    print("checkpoints/encoder.pt")
+    print("checkpoints/decoder.pt")
+    print("checkpoints/ssm.pt")
+
+    return encoder, decoder, ssm
+
+
+if __name__ == "__main__":
+
+    from data.synthetic_generator import PairedTimeSeriesGenerator
+
+    generator = PairedTimeSeriesGenerator(T=300)
+
+    data = generator.generate()
+
+    train(data)

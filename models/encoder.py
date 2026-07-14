@@ -9,7 +9,12 @@ class Encoder(nn.Module):
     q(z_t | y_t^1, y_t^2)
     """
 
-    def __init__(self, obs_dim, latent_dim, hidden_dim=64):
+    def __init__(
+        self,
+        obs_dim=2,
+        latent_dim=2,
+        hidden_dim=64,
+    ):
         super().__init__()
 
         self.obs_dim = obs_dim

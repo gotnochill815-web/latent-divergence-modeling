@@ -1,8 +1,14 @@
+import os
 import torch
 
+from models.encoder import Encoder
+from models.decoder import Decoder
+from models.latent_ssm import LatentSSM
+
 from data.synthetic_generator import PairedTimeSeriesGenerator
-from experiments.train import train
 from analysis.divergence_metrics import divergence_summary
+
+CHECKPOINT_DIR = "checkpoints"
 
 
 class Evaluator:
@@ -10,46 +16,104 @@ class Evaluator:
     def __init__(
         self,
         T=300,
-        epochs=150,
-        lambda_div=5.0,
-        beta_smooth=0.1,
+        device=None,
     ):
 
         self.T = T
-        self.epochs = epochs
-        self.lambda_div = lambda_div
-        self.beta_smooth = beta_smooth
+
+        if device is None:
+            self.device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            )
+        else:
+            self.device = device
+
+    # ----------------------------------------------------
+    # Load Trained Models
+    # ----------------------------------------------------
+
+    def load_models(self):
+
+        obs_dim = 2
+        latent_dim = 2
+
+        encoder = Encoder(
+            obs_dim=obs_dim,
+            latent_dim=latent_dim,
+        ).to(self.device)
+
+        decoder = Decoder(
+            obs_dim=obs_dim,
+            latent_dim=latent_dim,
+        ).to(self.device)
+
+        ssm = LatentSSM(
+            latent_dim=latent_dim,
+        ).to(self.device)
+
+        encoder.load_state_dict(
+            torch.load(
+                os.path.join(
+                    CHECKPOINT_DIR,
+                    "encoder.pt",
+                ),
+                map_location=self.device,
+            )
+        )
+
+        decoder.load_state_dict(
+            torch.load(
+                os.path.join(
+                    CHECKPOINT_DIR,
+                    "decoder.pt",
+                ),
+                map_location=self.device,
+            )
+        )
+
+        ssm.load_state_dict(
+            torch.load(
+                os.path.join(
+                    CHECKPOINT_DIR,
+                    "ssm.pt",
+                ),
+                map_location=self.device,
+            )
+        )
+
+        encoder.eval()
+        decoder.eval()
+        ssm.eval()
+
+        return encoder, decoder, ssm
+
+    # ----------------------------------------------------
+    # Evaluation
+    # ----------------------------------------------------
 
     def run(self):
 
         print("=" * 70)
-        print("Evaluating Latent Divergence Model")
+        print("Latent Divergence Evaluation")
         print("=" * 70)
 
-        # -----------------------------
-        # Generate Dataset
-        # -----------------------------
-        generator = PairedTimeSeriesGenerator(T=self.T)
-        data = generator.generate()
-
-        # -----------------------------
-        # Train Model
-        # -----------------------------
-        encoder, ssm = train(
-            data,
-            epochs=self.epochs,
-            lambda_div=self.lambda_div,
-            beta_smooth=self.beta_smooth,
+        generator = PairedTimeSeriesGenerator(
+            T=self.T
         )
 
-        encoder.eval()
+        data = generator.generate()
 
-        y1 = data["obs_1"]
-        y2 = data["obs_2"]
+        y1 = data["obs_1"].float().to(self.device)
+        y2 = data["obs_2"].float().to(self.device)
+
+        encoder, decoder, ssm = self.load_models()
 
         latent_dim = y1.shape[1]
 
-        z_list = []
+        z_all = []
+
+        recon1 = []
+        recon2 = []
 
         with torch.no_grad():
 
@@ -60,9 +124,17 @@ class Evaluator:
                     y2[t:t+1],
                 )
 
-                z_list.append(z)
+                y1_hat, y2_hat = decoder(z)
 
-        z = torch.cat(z_list)
+                recon1.append(y1_hat)
+                recon2.append(y2_hat)
+
+                z_all.append(z)
+
+        z = torch.cat(z_all)
+
+        recon1 = torch.cat(recon1)
+        recon2 = torch.cat(recon2)
 
         z1 = z[:, :latent_dim]
         z2 = z[:, latent_dim:]
@@ -74,10 +146,29 @@ class Evaluator:
 
         print()
 
-        for key, value in metrics.items():
-            print(f"{key:20s}: {value:.4f}")
+        print("Evaluation Metrics\n")
 
-        return metrics
+        for k, v in metrics.items():
+
+            print(f"{k:20s}: {v:.4f}")
+
+        return {
+
+            "metrics": metrics,
+
+            "z1": z1,
+
+            "z2": z2,
+
+            "y1": y1,
+
+            "y2": y2,
+
+            "y1_hat": recon1,
+
+            "y2_hat": recon2,
+
+        }
 
 
 if __name__ == "__main__":

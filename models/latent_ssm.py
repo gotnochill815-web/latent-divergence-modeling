@@ -8,7 +8,10 @@ class LatentSSM(nn.Module):
     Variational latent state-space model for paired time series.
     """
 
-    def __init__(self, latent_dim):
+    def __init__(
+        self,
+        latent_dim=2,
+    ):
         super().__init__()
 
         self.latent_dim = latent_dim

@@ -1,12 +1,21 @@
+import time
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
 
 class KalmanBaseline:
+    """
+    Classical Kalman Filter baseline for state estimation.
+    """
 
     def __init__(self, dim=2):
 
-        self.kf = KalmanFilter(dim_x=dim, dim_z=dim)
+        self.dim = dim
+
+        self.kf = KalmanFilter(
+            dim_x=dim,
+            dim_z=dim
+        )
 
         self.kf.F = np.eye(dim)
 
@@ -20,6 +29,8 @@ class KalmanBaseline:
 
     def run(self, observations):
 
+        start = time.time()
+
         predictions = []
 
         for obs in observations:
@@ -28,17 +39,21 @@ class KalmanBaseline:
 
             self.kf.update(obs)
 
-            predictions.append(self.kf.x.copy())
+            predictions.append(self.kf.x.squeeze())
 
-        return np.array(predictions)
+        runtime = time.time() - start
+
+        return np.array(predictions), runtime
 
 
 if __name__ == "__main__":
 
-    obs = np.random.randn(300, 2)
+    observations = np.random.randn(300, 2)
 
-    model = KalmanBaseline()
+    model = KalmanBaseline(dim=2)
 
-    pred = model.run(obs)
+    predictions, runtime = model.run(observations)
 
-    print(pred.shape)
+    print("Prediction Shape :", predictions.shape)
+
+    print("Runtime :", runtime)
