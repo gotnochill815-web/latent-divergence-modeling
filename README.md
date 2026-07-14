@@ -1,149 +1,191 @@
-# Latent Divergence Modeling
+#  Latent Divergence Modeling
 
 > **Variational State Space Models for Learning Divergence Dynamics in Paired Time Series**
 
-A research-oriented deep learning framework for modeling paired time series using **Variational State Space Models (VSSMs)**. The project learns latent representations of two correlated sequences, models temporal dynamics, and quantifies divergence between latent trajectories.
-Demo : https://latent-divergence-modeling-cznjz8yyqb49thkkqbpdta.streamlit.app/
+[![Demo](https://img.shields.io/badge/Live-Demo-red?style=for-the-badge)](https://latent-divergence-modeling-cznjz8yyqb49thkkqbpdta.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)]()
+[![PyTorch](https://img.shields.io/badge/PyTorch-DeepLearning-orange?style=for-the-badge)]()
+[![Streamlit](https://img.shields.io/badge/Streamlit-WebApp-red?style=for-the-badge)]()
+
+---
+
+## 🚀 Live Demo
+
+**Try the interactive demo here**
+
+https://latent-divergence-modeling-cznjz8yyqb49thkkqbpdta.streamlit.app/
+
+---
+
+# Motivation
+
+Imagine monitoring two systems that should behave similarly.
+
+Examples include
+
+🏥 Two patients recovering from the same treatment
+
+🏭 Two industrial machines operating under identical conditions
+
+📈 Two correlated stock prices
+
+🚗 Two autonomous vehicles following the same route
+
+🤖 Two robots collaborating on a task
+
+Initially both systems behave similarly.
+
+Over time, subtle differences begin to emerge.
+
+Traditional forecasting models mainly answer:
+
+> **"What will happen next?"**
+
+This project instead asks
+
+> **"How are these two systems gradually becoming different?"**
+
+The proposed Variational State Space Model learns this divergence directly in a latent space, allowing earlier detection of behavioral changes before they become obvious in the raw observations.
 
 ---
 
 # Architecture
 
 <p align="center">
-  <img src="docs/figures/architecture.png" width="850">
+<img src="docs/figures/architecture.png" width="900">
 </p>
 
-The model consists of:
+The model consists of
 
 - Variational Encoder
 - Latent State Space Model
 - Shared Decoder
-- Divergence-aware Latent Space
-- Multi-objective Loss Function
+- Divergence-aware Latent Representation
+- Multi-objective Training Objective
 
 ---
 
 # Training Pipeline
 
 <p align="center">
-  <img src="docs/figures/pipeline.png" width="850">
+<img src="docs/figures/pipeline.png" width="900">
 </p>
 
-Pipeline Overview
+```
+Synthetic Paired Time Series
+            │
+            ▼
+    Variational Encoder
+            │
+            ▼
+     Shared Latent Space
+            │
+            ▼
+  Latent State Space Model
+            │
+            ▼
+      Shared Decoder
+            │
+            ▼
+ Reconstruction + Divergence Loss
+            │
+            ▼
+         Evaluation
+            │
+            ▼
+         Benchmarking
+```
+
+---
+
+# Why Latent Divergence?
+
+Instead of comparing observations directly,
 
 ```
-Synthetic Time Series
-        │
-        ▼
-Variational Encoder
-        │
-        ▼
-Latent Representation
-        │
-        ▼
-Latent State Space Model
-        │
-        ▼
-Decoder
-        │
-        ▼
-Loss Functions
-        │
-        ▼
-Training
-        │
-        ▼
-Evaluation
-        │
-        ▼
-Benchmark
+Observation A
+Observation B
 ```
+
+the model learns
+
+```
+Latent Representation A
+
+vs
+
+Latent Representation B
+```
+
+This makes divergence estimation
+
+- More robust to noise
+- More interpretable
+- Better suited for temporal dynamics
+- Capable of identifying hidden behavioral changes
 
 ---
 
 # Features
 
-- Variational Encoder
-- Latent State Space Model
-- Shared Decoder
-- KL Regularization
-- Latent Divergence Loss
-- Smoothness Regularization
-- Synthetic Paired Time Series Generator
-- Multiple Baseline Models
-- Automatic Benchmarking
-- Visualization Pipeline
-- Streamlit-ready Project Structure
+✅ Variational State Space Model
+
+✅ Variational Encoder
+
+✅ Shared Decoder
+
+✅ Learnable Latent Dynamics
+
+✅ KL Regularization
+
+✅ Divergence-aware Learning
+
+✅ Temporal Smoothness Constraint
+
+✅ Synthetic Data Generator
+
+✅ Kalman Filter Baseline
+
+✅ Hidden Markov Model Baseline
+
+✅ LSTM Baseline
+
+✅ Automatic Benchmarking
+
+✅ Interactive Streamlit Dashboard
 
 ---
 
 # Repository Structure
 
-```
+```text
 latent-divergence-modeling/
 
-├── analysis/
-│   ├── divergence_metrics.py
-│   ├── visualize_latents.py
-│   ├── training_curve.py
-│   ├── reconstruction_plot.py
-│   ├── benchmark_summary.py
-│   └── latent_space_plot.py
-│
-├── baselines/
-│   ├── kalman.py
-│   ├── hmm.py
-│   └── lstm.py
-│
-├── checkpoints/
-│
-├── data/
-│   ├── dataset.py
-│   └── synthetic_generator.py
-│
-├── docs/
-│   └── figures/
-│
-├── evaluation/
-│   ├── benchmark.py
-│   ├── compare.py
-│   ├── interface.py
-│   └── metrics.py
-│
-├── experiments/
-│   ├── train.py
-│   └── evaluate.py
-│
-├── losses/
-│   └── divergence_loss.py
-│
-├── models/
-│   ├── encoder.py
-│   ├── decoder.py
-│   ├── latent_ssm.py
-│   └── regime_model.py
-│
-├── results/
-│
-├── requirements.txt
-└── README.md
+analysis/
+baselines/
+checkpoints/
+data/
+docs/
+evaluation/
+experiments/
+losses/
+models/
+results/
+
+app.py
+README.md
+requirements.txt
 ```
 
 ---
 
 # Installation
 
-Clone the repository
-
 ```bash
 git clone https://github.com/gotnochill815-web/latent-divergence-modeling.git
 
 cd latent-divergence-modeling
-```
 
-Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
@@ -155,12 +197,12 @@ pip install -r requirements.txt
 python -m experiments.train
 ```
 
-This will
+This
 
-- Train the Variational State Space Model
-- Save checkpoints
-- Save training history
-- Generate training metrics
+- trains the encoder
+- trains the latent state-space model
+- saves checkpoints
+- records training history
 
 ---
 
@@ -170,7 +212,7 @@ This will
 python -m experiments.evaluate
 ```
 
-Produces
+Outputs
 
 - Mean Divergence
 - Maximum Divergence
@@ -182,55 +224,46 @@ Produces
 
 # Benchmark
 
-Run
-
 ```bash
 python -m evaluation.benchmark
 ```
 
-Outputs
+Benchmarks against
 
-```
-results/
-
-benchmark_results.csv
-
-rmse.png
-
-mae.png
-
-runtime.png
-```
+- Kalman Filter
+- Hidden Markov Model
+- LSTM
+- Variational State Space Model (Ours)
 
 ---
 
 # Training Dynamics
 
 <p align="center">
-<img src="docs/figures/training_curve.png" width="850">
+<img src="docs/figures/training_curve.png" width="900">
 </p>
 
-The training loss decreases steadily while reconstruction error remains low and latent smoothness improves throughout optimization.
+The optimization process shows stable convergence with decreasing reconstruction error while simultaneously improving latent smoothness and divergence learning.
 
 ---
 
 # Reconstruction
 
 <p align="center">
-<img src="docs/figures/reconstruction.png" width="850">
+<img src="docs/figures/reconstruction.png" width="900">
 </p>
 
-Comparison between the reconstructed sequences and the original paired observations.
+Comparison between the reconstructed paired observations and the original synthetic signals.
 
 ---
 
 # Latent Space
 
 <p align="center">
-<img src="docs/figures/latent_space.png" width="700">
+<img src="docs/figures/latent_space.png" width="750">
 </p>
 
-Visualization of the learned latent trajectories for both paired time series.
+The encoder projects both time series into a shared latent space where divergence can be measured more effectively than in the raw observation space.
 
 ---
 
@@ -240,14 +273,7 @@ Visualization of the learned latent trajectories for both paired time series.
 <img src="docs/figures/benchmark_summary.png" width="900">
 </p>
 
-Current benchmark includes
-
-- Variational State Space Model (Ours)
-- Kalman Filter
-- Hidden Markov Model
-- LSTM
-
-Evaluation Metrics
+Evaluation metrics include
 
 - RMSE
 - MAE
@@ -260,53 +286,46 @@ Evaluation Metrics
 
 # Loss Function
 
-The training objective combines four complementary losses:
+The optimization objective combines
 
 \[
 \mathcal{L}
 =
-\mathcal{L}_{reconstruction}
+\mathcal{L}_{Recon}
 +
-\beta
-\mathcal{L}_{KL}
+\beta \mathcal{L}_{KL}
 +
-\lambda
-\mathcal{L}_{divergence}
+\lambda \mathcal{L}_{Div}
 +
-\gamma
-\mathcal{L}_{smoothness}
+\gamma \mathcal{L}_{Smooth}
 \]
 
 where
 
-- Reconstruction Loss preserves observations
-- KL Divergence regularizes the latent posterior
-- Divergence Loss separates paired latent trajectories
-- Smoothness Loss encourages temporal consistency
+- **Reconstruction Loss** preserves observations.
+- **KL Divergence** regularizes the latent posterior.
+- **Divergence Loss** separates paired latent trajectories.
+- **Smoothness Loss** encourages temporally consistent latent dynamics.
 
 ---
 
-# Results
+# Potential Applications
 
-Current benchmark demonstrates:
+🏥 Patient health monitoring
 
-- Stable latent trajectory learning
-- Smooth temporal representations
-- Competitive reconstruction accuracy
-- Quantifiable latent divergence
-- Comparison against classical and neural baselines
+🏭 Predictive maintenance
 
----
+🚗 Autonomous driving
 
-# Future Work
+📈 Financial market analysis
 
-- Real-world multimodal datasets
-- Online inference
-- Transformer-based latent dynamics
-- Diffusion priors
-- Regime-switching dynamics
-- Uncertainty-aware forecasting
-- Bayesian latent transitions
+⚡ Industrial sensor monitoring
+
+🛰 Satellite trajectory analysis
+
+🤖 Multi-agent robotics
+
+🌦 Climate and weather forecasting
 
 ---
 
@@ -314,12 +333,24 @@ Current benchmark demonstrates:
 
 - Python
 - PyTorch
+- Streamlit
 - NumPy
-- Matplotlib
 - Pandas
+- Matplotlib
 - FilterPy
 - hmmlearn
-- Streamlit
+
+---
+
+# Future Work
+
+- Real-world datasets
+- Bayesian latent dynamics
+- Transformer-based temporal modeling
+- Diffusion priors
+- Online inference
+- Multi-modal sensor fusion
+- Uncertainty-aware forecasting
 
 ---
 
@@ -327,13 +358,14 @@ Current benchmark demonstrates:
 
 **Prakhya Khandelwal**
 
-AI Research • Machine Learning • Deep Learning • Probabilistic Modeling
+AI Research • Machine Learning • Probabilistic Modeling • Deep Learning
 
-GitHub:
+GitHub
+
 https://github.com/gotnochill815-web
 
 ---
 
-## License
+# License
 
 MIT License
