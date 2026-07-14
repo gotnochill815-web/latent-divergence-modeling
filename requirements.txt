@@ -1,3 +1,9 @@
-numpy
 torch
+numpy
+pandas
 matplotlib
+streamlit
+scikit-learn
+filterpy
+hmmlearn
+graphviz
