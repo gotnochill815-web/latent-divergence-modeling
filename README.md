@@ -3,6 +3,7 @@
 > **Variational State Space Models for Learning Divergence Dynamics in Paired Time Series**
 
 A research-oriented deep learning framework for modeling paired time series using **Variational State Space Models (VSSMs)**. The project learns latent representations of two correlated sequences, models temporal dynamics, and quantifies divergence between latent trajectories.
+Demo : https://latent-divergence-modeling-cznjz8yyqb49thkkqbpdta.streamlit.app/
 
 ---
 
